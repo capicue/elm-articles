@@ -1,7 +1,7 @@
 import Date exposing (Date)
 import Effects exposing (Effects, Never)
-import Html exposing (Html, a, div, h2, p, text)
-import Html.Attributes exposing (class, src)
+import Html exposing (..)
+import Html.Attributes exposing (class, href)
 import Http
 import Maybe
 import StartApp
@@ -52,16 +52,20 @@ update action model =
 
 view : Signal.Address Action -> Model -> Html
 view address model =
-  div []
-    (List.map showArticle model.articles)
+  div
+    [ class "all" ]
+    [ div
+      [ class "container" ]
+      (List.map showArticle model.articles)
+    ]
 
 
 showArticle : Article -> Html
 showArticle article =
   div
-    [ class "article" ]
+    [ class "article row" ]
     [ div
-      [ class "article-source" ]
+      [ class "article-source four columns" ]
       [ div
         [ class "article-date" ]
         [ showDate (Date.fromTime article.published_on) ]
@@ -70,15 +74,15 @@ showArticle article =
         [ text ("by " ++ article.author) ]
       ]
     , div
-      [ class "article-detail" ]
-      [ h2
-        [ ]
+      [ class "article-detail eight columns" ]
+      [ div
+        [ class "article-title" ]
         [ a
-          [ src article.url ]
+          [ href article.url ]
           [ text article.title ]
         ]
         , div
-        [ class "summary" ]
+        [ class "article-summary" ]
         [ text "placeholder" ]
       ]
     ]

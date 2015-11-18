@@ -1,0 +1,23 @@
+a {
+  text-decoration: none;
+}
+
+.all {
+  width: 80%;
+  margin: 0px auto;
+  margin-top: 20px;
+}
+
+.article {
+  padding: 10px 0;
+}
+
+.article-source {
+  text-align: right;
+  font-size: 80%;
+  padding-top: 10px;
+}
+
+.article-title {
+  font-size: 120%;
+}
