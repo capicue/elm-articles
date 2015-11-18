@@ -1,9 +1,11 @@
-import StartApp
+import Date exposing (Date)
 import Effects exposing (Effects, Never)
-import Task exposing (Task)
-import Maybe
-import Html exposing (Html, div, text)
+import Html exposing (Html, a, div, h2, p, text)
+import Html.Attributes exposing (class, src)
 import Http
+import Maybe
+import StartApp
+import Task exposing (Task)
 
 
 import Api
@@ -51,7 +53,45 @@ update action model =
 view : Signal.Address Action -> Model -> Html
 view address model =
   div []
-    [ text (toString model) ]
+    (List.map showArticle model.articles)
+
+
+showArticle : Article -> Html
+showArticle article =
+  div
+    [ class "article" ]
+    [ div
+      [ class "article-source" ]
+      [ div
+        [ class "article-date" ]
+        [ showDate (Date.fromTime article.published_on) ]
+      , div
+        [ class "article-author" ]
+        [ text ("by " ++ article.author) ]
+      ]
+    , div
+      [ class "article-detail" ]
+      [ h2
+        [ ]
+        [ a
+          [ src article.url ]
+          [ text article.title ]
+        ]
+        , div
+        [ class "summary" ]
+        [ text "placeholder" ]
+      ]
+    ]
+
+
+showDate : Date -> Html
+showDate date =
+  let
+      year = toString (Date.year date)
+      month = toString (Date.month date)
+      day = toString (Date.day date)
+  in
+      text (month ++ " " ++ day ++ ", " ++ year)
 
 
 {-|
