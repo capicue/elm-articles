@@ -1,10 +1,14 @@
 module Api where
 
 
-import Http
+import Http exposing (fromJson)
 import Effects exposing (Effects)
 import String
 import Task exposing (Task)
+import Json.Decode as Decode exposing (Decoder, (:=), float, int, list, null, oneOf, string, succeed)
+
+
+import Models exposing (Article)
 
 
 mainUrl : String
@@ -35,3 +39,29 @@ request verb path =
     , url = mainUrl ++ path
     , body = Http.empty
     }
+
+
+(|:) : Decoder (a -> b) -> Decoder a -> Decoder b
+(|:) = Decode.object2 (<|)
+
+
+article : Decoder Article
+article =
+  succeed Article
+    |: ("id" := string)
+    |: ("url" := string)
+    |: ("title" := string)
+    |: ("picture_url" := oneOf [string, null ""])
+    |: ("author" := string)
+    |: ("published_on" := float)
+
+
+articles : Decoder (List Article)
+articles =
+  list article
+
+
+articlesIndex : Task Http.Error (List Article)
+articlesIndex =
+  request Get "articles"
+    |> fromJson articles

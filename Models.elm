@@ -1,7 +1,7 @@
-module ArticleList where
+module Models where
 
 
--- MODEL
+import Date exposing (Date)
 
 
 type alias Article =
@@ -10,9 +10,5 @@ type alias Article =
   , title : String
   , picture_url : String
   , author : String
-  , published_on : Date
+  , published_on : Float
   }
-
-
-type alias Model =
-  { articles : List Article }
