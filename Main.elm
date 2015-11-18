@@ -10,6 +10,7 @@ import Task exposing (Task)
 
 import Api
 import Models exposing (Article)
+import Utils.String
 
 
 -- MODEL
@@ -85,7 +86,7 @@ showArticle article =
         ]
         , div
         [ class "article-summary" ]
-        [ text "placeholder" ]
+        [ text (Utils.String.truncate 500 article.summary) ]
       ]
     ]
 
