@@ -1,7 +1,7 @@
 import Date exposing (Date)
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class, href)
+import Html.Attributes exposing (class, href, target)
 import Http
 import Maybe
 import StartApp
@@ -78,7 +78,9 @@ showArticle article =
       [ div
         [ class "article-title" ]
         [ a
-          [ href article.url ]
+          [ href article.url
+          , target "_blank"
+          ]
           [ text article.title ]
         ]
         , div
