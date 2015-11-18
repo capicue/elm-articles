@@ -8,7 +8,7 @@ type alias Article =
   { id : String
   , url : String
   , title : String
-  , picture_url : String
+  , summary : String
   , author : String
   , published_on : Float
   }

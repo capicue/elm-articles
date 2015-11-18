@@ -51,7 +51,7 @@ article =
     |: ("id" := string)
     |: ("url" := string)
     |: ("title" := string)
-    |: ("picture_url" := oneOf [string, null ""])
+    |: ("summary" := oneOf [string, null ""])
     |: ("author" := string)
     |: ("published_on" := float)
 
