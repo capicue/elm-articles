@@ -63,5 +63,5 @@ articles =
 
 articlesIndex : Task Http.Error (List Article)
 articlesIndex =
-  request Get "articles"
+  request Get "articles?$sort=published_on%20DESC"
     |> fromJson articles
