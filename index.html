@@ -15,7 +15,18 @@
 
 <body>
   <script type="text/javascript">
-    var app = Elm.fullscreen(Elm.Main);
+    var app = Elm.fullscreen(Elm.Main, {loadNextPage: ""});
+    app.ports.loadNextPage.send("loadMore");
+
+    window.addEventListener("scroll", function(event) {
+        var scrollPosition = window.pageYOffset;
+        var pageHeight = document.documentElement.scrollHeight;
+        var clientHeight = document.documentElement.clientHeight;
+
+        if (pageHeight - (scrollPosition + clientHeight) < 50) {
+          app.ports.loadNextPage.send("loadMore");
+        }
+    });
   </script>
 </body>
 </html>

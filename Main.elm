@@ -1,8 +1,10 @@
 import Date exposing (Date)
 import Effects exposing (Effects, Never)
 import Html exposing (..)
-import Html.Attributes exposing (class, href, target)
+import Html.Attributes exposing (class, hidden, href, target)
+import Html.Events exposing (on, targetValue)
 import Http
+import Json.Decode
 import Maybe
 import StartApp
 import Task exposing (Task)
@@ -18,34 +20,86 @@ import Utils.String
 type alias Model =
   { articles : List Article
   , error : String
+  , loading : Bool
+  , page : Int
+  , loadedAll : Bool
   }
 
 
 initialModel : Model
 initialModel =
-  Model [] ""
+  { articles = []
+  , error = ""
+  , loading = False
+  , page = 1
+  , loadedAll = False
+  }
 
 
 -- UPDATE
 
 
-type Action = ReplaceArticles (Result Http.Error (List Article))
+type Action
+  = NoOp
+  | LoadNextPage
+  | AppendArticles (Result Http.Error (List Article))
 
 
 update : Action -> Model -> (Model, Effects Action)
 update action model =
   case action of
-    ReplaceArticles result ->
-      case result of
-        Ok articles ->
-          ( { model | articles <- articles }
-          , Effects.none
-          )
+    NoOp ->
+        (model, Effects.none)
 
-        Err err ->
-          ( { model | error <- toString err }
-          , Effects.none
-          )
+    LoadNextPage ->
+        if (model.loading && not model.loadedAll) then
+          (model, Effects.none)
+        else
+          let
+              effect =
+                Api.getArticles model.page
+                  |> Task.toResult
+                  |> Task.map AppendArticles
+                  |> Effects.task
+          in
+              ( { model | loading = True }
+              , effect
+              )
+
+    AppendArticles result ->
+        case result of
+          Ok articles ->
+            ( { model |
+                articles = model.articles ++ articles
+              , loading = False
+              , page = model.page + 1
+              }
+            , Effects.none
+            )
+
+          Err err ->
+            case err of
+              Http.Timeout ->
+                ( { model | error = toString err }, Effects.none )
+              Http.NetworkError ->
+                ( { model | error = toString err }, Effects.none )
+              Http.UnexpectedPayload str ->
+                ( { model |
+                    error = "An unexpected error has occurred. Please report."
+                  }
+                , Effects.none
+                )
+              Http.BadResponse int str ->
+                if int == 400 then
+                  ( { model |
+                      error = ""
+                    , loading = False
+                    , loadedAll = True
+                    }
+                  , Effects.none
+                  )
+                else
+                ( { model | error = toString err }, Effects.none )
 
 
 -- VIEW
@@ -58,6 +112,9 @@ view address model =
     [ div
       [ class "container" ]
       (List.map showArticle model.articles)
+    , div
+      [ hidden (not model.loadedAll) ]
+      [ hr [] [] ]
     ]
 
 
@@ -101,6 +158,20 @@ showDate date =
       text (month ++ " " ++ day ++ ", " ++ year)
 
 
+-- SIGNALS
+
+
+port tasks : Signal (Task Never ())
+port tasks =
+  app.tasks
+
+
+port loadNextPage : Signal String
+
+
+-- WIRING
+
+
 {-|
 { html : Signal Html.Html
 , model : Signal a
@@ -109,25 +180,12 @@ showDate date =
 -}
 app =
   StartApp.start
-    { init = (initialModel, populateArticles)
+    { init = (initialModel, Effects.none )
     , update = update
     , view = view
-    , inputs = []
+    , inputs = [ Signal.map (\_ -> LoadNextPage) loadNextPage ]
     }
 
 
 main =
   app.html
-
-
-port tasks : Signal (Task Never ())
-port tasks =
-  app.tasks
-
-
-populateArticles : Effects Action
-populateArticles =
-  Api.articlesIndex
-    |> Task.toResult
-    |> Task.map ReplaceArticles
-    |> Effects.task

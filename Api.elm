@@ -61,7 +61,7 @@ articles =
   list article
 
 
-articlesIndex : Task Http.Error (List Article)
-articlesIndex =
-  request Get "articles?$sort=published_on%20DESC"
+getArticles : Int -> Task Http.Error (List Article)
+getArticles page =
+  request Get ("articles?$sort=published_on%20DESC&$page=" ++ (toString page))
     |> fromJson articles
