@@ -1,164 +1,19 @@
-import Date exposing (Date)
-import Effects exposing (Effects, Never)
-import Html exposing (..)
-import Html.Attributes exposing (class, hidden, href, target)
-import Html.Events exposing (on, targetValue)
-import Http
-import Json.Decode
-import Maybe
+import Effects exposing (Never)
+import ArticleList exposing (init, update, view)
 import StartApp
 import Task exposing (Task)
 
 
-import Api
-import Models exposing (Article)
-import Utils.String
+app =
+  StartApp.start
+    { init = init
+    , update = update
+    , view = view
+    , inputs = [ Signal.map (\_ -> ArticleList.LoadNextPage) loadNextPage]
+    }
 
 
--- MODEL
-
-type alias Model =
-  { articles : List Article
-  , error : String
-  , loading : Bool
-  , page : Int
-  , loadedAll : Bool
-  }
-
-
-initialModel : Model
-initialModel =
-  { articles = []
-  , error = ""
-  , loading = False
-  , page = 1
-  , loadedAll = False
-  }
-
-
--- UPDATE
-
-
-type Action
-  = NoOp
-  | LoadNextPage
-  | AppendArticles (Result Http.Error (List Article))
-
-
-update : Action -> Model -> (Model, Effects Action)
-update action model =
-  case action of
-    NoOp ->
-        (model, Effects.none)
-
-    LoadNextPage ->
-        if (model.loading && not model.loadedAll) then
-          (model, Effects.none)
-        else
-          let
-              effect =
-                Api.getArticles model.page
-                  |> Task.toResult
-                  |> Task.map AppendArticles
-                  |> Effects.task
-          in
-              ( { model | loading = True }
-              , effect
-              )
-
-    AppendArticles result ->
-        case result of
-          Ok articles ->
-            ( { model |
-                articles = model.articles ++ articles
-              , loading = False
-              , page = model.page + 1
-              }
-            , Effects.none
-            )
-
-          Err err ->
-            case err of
-              Http.Timeout ->
-                ( { model | error = toString err }, Effects.none )
-              Http.NetworkError ->
-                ( { model | error = toString err }, Effects.none )
-              Http.UnexpectedPayload str ->
-                ( { model |
-                    error = "An unexpected error has occurred. Please report."
-                  }
-                , Effects.none
-                )
-              Http.BadResponse int str ->
-                if int == 400 then
-                  ( { model |
-                      error = ""
-                    , loading = False
-                    , loadedAll = True
-                    }
-                  , Effects.none
-                  )
-                else
-                ( { model | error = toString err }, Effects.none )
-
-
--- VIEW
-
-
-view : Signal.Address Action -> Model -> Html
-view address model =
-  div
-    [ class "all" ]
-    [ div
-      [ class "container" ]
-      (List.map showArticle model.articles)
-    , div
-      [ hidden (not model.loadedAll) ]
-      [ hr [] [] ]
-    ]
-
-
-showArticle : Article -> Html
-showArticle article =
-  div
-    [ class "article row" ]
-    [ div
-      [ class "article-source four columns" ]
-      [ div
-        [ class "article-date" ]
-        [ showDate (Date.fromTime article.published_on) ]
-      , div
-        [ class "article-author" ]
-        [ text ("by " ++ article.author) ]
-      ]
-    , div
-      [ class "article-detail eight columns" ]
-      [ div
-        [ class "article-title" ]
-        [ a
-          [ href article.url
-          , target "_blank"
-          ]
-          [ text article.title ]
-        ]
-        , div
-        [ class "article-summary" ]
-        [ text (Utils.String.truncate 500 article.summary) ]
-      ]
-    ]
-
-
-showDate : Date -> Html
-showDate date =
-  let
-      year = toString (Date.year date)
-      month = toString (Date.month date)
-      day = toString (Date.day date)
-  in
-      text (month ++ " " ++ day ++ ", " ++ year)
-
-
--- SIGNALS
+main = app.html
 
 
 port tasks : Signal (Task Never ())
@@ -167,25 +22,3 @@ port tasks =
 
 
 port loadNextPage : Signal String
-
-
--- WIRING
-
-
-{-|
-{ html : Signal Html.Html
-, model : Signal a
-, tasks : Signal (Task Effects.Never ())
-}
--}
-app =
-  StartApp.start
-    { init = (initialModel, Effects.none )
-    , update = update
-    , view = view
-    , inputs = [ Signal.map (\_ -> LoadNextPage) loadNextPage ]
-    }
-
-
-main =
-  app.html

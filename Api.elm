@@ -8,7 +8,7 @@ import Task exposing (Task)
 import Json.Decode as Decode exposing (Decoder, (:=), float, int, list, null, oneOf, string, succeed)
 
 
-import Models exposing (Article)
+import Article
 
 
 mainUrl : String
@@ -45,9 +45,9 @@ request verb path =
 (|:) = Decode.object2 (<|)
 
 
-article : Decoder Article
+article : Decoder Article.Model
 article =
-  succeed Article
+  succeed Article.Model
     |: ("id" := string)
     |: ("url" := string)
     |: ("title" := string)
@@ -56,12 +56,12 @@ article =
     |: ("published_on" := float)
 
 
-articles : Decoder (List Article)
+articles : Decoder (List Article.Model)
 articles =
   list article
 
 
-getArticles : Int -> Task Http.Error (List Article)
+getArticles : Int -> Task Http.Error (List Article.Model)
 getArticles page =
   request Get ("articles?$sort=published_on%20DESC&$page=" ++ (toString page))
     |> fromJson articles
