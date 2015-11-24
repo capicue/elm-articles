@@ -23,14 +23,17 @@ type alias Model =
 
 init : (Model, Effects Action)
 init =
-  ( { articles = []
-    , error = ""
-    , loading = False
-    , page = 1
-    , loadedAll = False
-    }
-  , Effects.none
-  )
+  let
+    firstPage = 1
+  in
+    ( { articles = []
+      , error = ""
+      , loading = False
+      , page = firstPage
+      , loadedAll = False
+      }
+    , getPage firstPage
+    )
 
 
 -- UPDATE
@@ -55,16 +58,7 @@ update action model =
       if (model.loading && not model.loadedAll) then
         ( model, Effects.none )
       else
-        let
-          effect =
-            Api.getArticles model.page
-              |> Task.toResult
-              |> Task.map AppendArticles
-              |> Effects.task
-        in
-          ( { model | loading = True }
-          , effect
-          )
+        ( model, getPage model.page )
 
     AppendArticles result ->
       case result of
@@ -120,3 +114,13 @@ view address model =
 viewArticle : Signal.Address Action -> Article.Model -> Html
 viewArticle address model =
   Article.view (Signal.forwardTo address Modify) model
+
+
+-- EFFECTS
+
+getPage : Int -> Effects Action
+getPage pageNumber =
+  Api.getArticles pageNumber
+    |> Task.toResult
+    |> Task.map AppendArticles
+    |> Effects.task
