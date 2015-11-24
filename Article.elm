@@ -16,7 +16,7 @@ type alias Model =
   , title : String
   , summary : String
   , author : String
-  , published_on : Float
+  , publishedOn : Date
   }
 
 
@@ -35,7 +35,7 @@ view address model =
       [ class "article-source four columns" ]
       [ div
         [ class "article-date" ]
-        [ text (Utils.Date.showDate (Date.fromTime model.published_on)) ]
+        [ text (Utils.Date.showDate model.publishedOn) ]
       , div
         [ class "article-author" ]
         [ text ("by " ++ model.author) ]

@@ -1,4 +1,4 @@
-[ ] add another step between getting JSON and creating articles
+[x] add another step between getting JSON and creating articles
 [ ] mark articles as read
 [ ] gulp for making stuff
 [ ] deployment

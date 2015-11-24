@@ -1,6 +1,7 @@
 module Api where
 
 
+import Date
 import Http exposing (fromJson)
 import Effects exposing (Effects)
 import String
@@ -27,6 +28,27 @@ type Verb = Get | Post | Patch | Delete
 type alias Path = String
 
 
+type alias RawArticle =
+  { id : String
+  , url : String
+  , title : String
+  , summary : String
+  , author : String
+  , published_on : Float
+  }
+
+
+fromRawArticle : RawArticle -> Article.Model
+fromRawArticle raw =
+  { id = raw.id
+  , url = raw.url
+  , title = raw.title
+  , summary = raw.summary
+  , author = raw.author
+  , publishedOn = Date.fromTime raw.published_on
+  }
+
+
 {-| `Task Http.RawError Http.Response` means that the task will either fail
 with an Http.RawError or succed with an Http.Response
 -}
@@ -45,9 +67,9 @@ request verb path =
 (|:) = Decode.object2 (<|)
 
 
-article : Decoder Article.Model
+article : Decoder RawArticle
 article =
-  succeed Article.Model
+  succeed RawArticle
     |: ("id" := string)
     |: ("url" := string)
     |: ("title" := string)
@@ -56,7 +78,7 @@ article =
     |: ("published_on" := float)
 
 
-articles : Decoder (List Article.Model)
+articles : Decoder (List RawArticle)
 articles =
   list article
 
@@ -65,3 +87,4 @@ getArticles : Int -> Task Http.Error (List Article.Model)
 getArticles page =
   request Get ("articles?$sort=published_on%20DESC&$page=" ++ (toString page))
     |> fromJson articles
+    |> Task.map (List.map fromRawArticle)
