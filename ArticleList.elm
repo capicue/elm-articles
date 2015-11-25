@@ -4,6 +4,7 @@ import Effects exposing (Effects)
 import Html exposing (Html, div, hr, text)
 import Html.Attributes exposing (class, hidden)
 import Http
+import String
 import Task exposing (Task)
 
 import Api
@@ -41,7 +42,7 @@ init =
 type Action
   = NoOp
   | LoadNextPage
-  | AppendArticles (Result Http.Error (List Article.Model))
+  | AppendArticles (Result Http.Error (List Api.RawArticle))
   | Modify Article.Action
 
 
@@ -64,7 +65,7 @@ update action model =
       case result of
         Ok articles ->
           ( { model |
-              articles = model.articles ++ articles
+              articles = model.articles ++ (List.map Article.init articles)
             , loading = False
             , page = model.page + 1
             }

@@ -9,9 +9,6 @@ import Task exposing (Task)
 import Json.Decode as Decode exposing (Decoder, (:=), float, int, list, null, oneOf, string, succeed)
 
 
-import Article
-
-
 mainUrl : String
 mainUrl =
   "https://elm-articles.apispark.net/v1/"
@@ -35,17 +32,6 @@ type alias RawArticle =
   , summary : String
   , author : String
   , published_on : Float
-  }
-
-
-fromRawArticle : RawArticle -> Article.Model
-fromRawArticle raw =
-  { id = raw.id
-  , url = raw.url
-  , title = raw.title
-  , summary = raw.summary
-  , author = raw.author
-  , publishedOn = Date.fromTime raw.published_on
   }
 
 
@@ -83,8 +69,7 @@ articles =
   list article
 
 
-getArticles : Int -> Task Http.Error (List Article.Model)
+getArticles : Int -> Task Http.Error (List RawArticle)
 getArticles page =
   request Get ("articles?$sort=published_on%20DESC&$page=" ++ (toString page))
     |> fromJson articles
-    |> Task.map (List.map fromRawArticle)

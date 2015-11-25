@@ -1,9 +1,11 @@
 module Article where
 
 import Date exposing (Date)
+import Effects exposing (Effects)
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, href, target)
 
+import Api
 import Utils.String
 import Utils.Date
 
@@ -17,6 +19,17 @@ type alias Model =
   , summary : String
   , author : String
   , publishedOn : Date
+  }
+
+
+init : Api.RawArticle -> Model
+init raw =
+  { id = raw.id
+  , url = raw.url
+  , title = raw.title
+  , summary = raw.summary
+  , author = raw.author
+  , publishedOn = Date.fromTime raw.published_on
   }
 
 
